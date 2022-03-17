@@ -15,7 +15,8 @@ project("fclient")
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-        native-lib
+        #native-lib
+        fclient
 
         # Sets the library as a shared library.
         SHARED
@@ -23,19 +24,23 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         native-lib.cpp)
 
-target_include_directories(native-lib PUBLIC
-        /home/daniyar/AndroidStudioProjects/libs/spdlog/spdlog/include
-        /home/daniyar/AndroidStudioProjects/libs/mbedtls/mbedtls/include)
+target_include_directories(fclient PUBLIC
+      #  /home/daniyar/AndroidStudioProjects/libs/spdlog/spdlog/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libs/spdlog/spdlog/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libs/mbedtls/mbedtls/include)
+        #/home/daniyar/AndroidStudioProjects/libs/mbedtls/mbedtls/include)
 #${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libs/spdlog/spdlog/include)
 
 add_library(spdlog STATIC IMPORTED)
 set_target_properties(spdlog PROPERTIES IMPORTED_LOCATION
-        /home/daniyar/AndroidStudioProjects/libs/spdlog/build/${ANDROID_ABI}/libspdlog.a)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../libs/spdlog/build/${ANDROID_ABI}/libspdlog.a)
+        #/home/daniyar/AndroidStudioProjects/libs/spdlog/build/${ANDROID_ABI}/libspdlog.a)
 
 
 add_library(mbedcrypto SHARED IMPORTED)
 set_target_properties(mbedcrypto PROPERTIES IMPORTED_LOCATION
-        /home/daniyar/AndroidStudioProjects/fclient/app/src/main/nativeLibs/${ANDROID_ABI}/libmbedcrypto.so)
+        ${CMAKE_CURRENT_SOURCE_DIR}/../nativeLibs/${ANDROID_ABI}/libmbedcrypto.so)
+        #/home/daniyar/AndroidStudioProjects/fclient/app/src/main/nativeLibs/${ANDROID_ABI}/libmbedcrypto.so)
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -56,7 +61,8 @@ find_library( # Sets the name of the path variable.
 
 
 target_link_libraries( # Specifies the target library.
-        native-lib
+        #native-lib
+        fclient
         spdlog
         mbedcrypto
         ${log-lib}

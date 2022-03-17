@@ -4,9 +4,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.fclient.databinding.ActivityMainBinding;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -22,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "MyLog mbedcrypto_lib");
     }
 
-    private ActivityMainBinding binding;
+    //private ActivityMainBinding binding;
 
 
 
@@ -49,6 +54,30 @@ public class MainActivity extends AppCompatActivity {
 
         Log.i(TAG, "MyLog u_u");
 
+        Toast.makeText(this, "Hello", Toast.LENGTH_SHORT).show();
+    }
+
+    public static byte[] stringToHex(String s)
+    {
+        byte[] hex;
+        try
+        {
+            hex = Hex.decodeHex(s.toCharArray());
+        }
+        catch (DecoderException ex)
+        {
+            hex = null;
+        }
+        return hex;
+    }
+
+    public void onButtonClick(View v)
+    {
+        byte[] key = stringToHex("0123456789ABCDEF0123456789ABCDE0");
+        byte[] enc = encrypt(key, stringToHex("098200004900000102"));
+        byte[] dec = decrypt(key, enc);
+        String s = new String(Hex.encodeHex(dec)).toUpperCase();
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
     /**
