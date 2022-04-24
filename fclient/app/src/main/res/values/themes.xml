@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.Fclient" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimary">#ffbb00</item>
+        <item name="colorPrimaryVariant">#c25700</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
@@ -12,5 +12,24 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+    </style>
+    <style name="PadButton">
+        <item name="android:textColor" >#ecf0f1</item>
+        <item name="android:layout_marginRight" >5dp</item>
+        <item name="android:layout_marginLeft" >5dp</item>
+        <item name="android:backgroundTint" >#ffbb00</item>
+
+    </style>
+    <style name="PadButtonOk">
+        <item name="android:textColor" >#ecf0f1</item>
+        <item name="android:layout_marginRight" >5dp</item>
+        <item name="android:layout_marginLeft" >5dp</item>
+        <item name="android:backgroundTint" >#3dcc00</item>
+    </style>
+    <style name="PadButtonReset">
+        <item name="android:textColor" >#ecf0f1</item>
+        <item name="android:layout_marginRight" >5dp</item>
+        <item name="android:layout_marginLeft" >5dp</item>
+        <item name="android:backgroundTint" >#b55135</item>
     </style>
 </resources>

@@ -1,21 +1,29 @@
 package com.example.fclient;
 
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.fclient.databinding.ActivityMainBinding;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TransactionEvents {
+    ActivityResultLauncher activityResultLauncher;
     private static final String TAG = "MyActivity";
+
 
     // Used to load the 'fclient' library on application startup.
     static {
@@ -24,10 +32,33 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
         Log.i(TAG, "MyLog native-lib");
         System.loadLibrary("mbedcrypto");
-        Log.i(TAG, "MyLog mbedcrypto_lib");
+        Log.i(TAG, "MyLog mbedcrypto_lib");    //private ActivityMainBinding binding;
     }
 
-    //private ActivityMainBinding binding;
+    @Override
+    public void transactionResult(boolean result) {
+        runOnUiThread(()-> {
+            Toast.makeText(MainActivity.this, result ? "ok" : "failed", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private String pin;
+    @Override
+    public String enterPin(int ptc, String amount) {
+        pin = new String();
+        Intent it = new Intent(MainActivity.this, PinpadActivity.class);
+        it.putExtra("ptc", ptc);
+        it.putExtra("amount", amount);
+        synchronized (MainActivity.this) {
+            activityResultLauncher.launch(it);
+            try {
+                MainActivity.this.wait();
+            } catch (Exception ex) {
+                Log.i(TAG, ex.getMessage());
+            }
+        }
+        return pin;
+    }
 
 
 
@@ -48,13 +79,29 @@ public class MainActivity extends AppCompatActivity {
         TextView tv = findViewById(R.id.sample_text);
         //TextView tv = binding.sampleText;
         tv.setText(stringFromJNI());
-        byte[] key =new byte[] {0,1,0,0,1,0,1,0,1,0,1,0,1,1,0,1};
-        byte[] shifr = encrypt(key, v);
-        byte[] rashifr = decrypt(key, shifr);
 
-        Log.i(TAG, "MyLog u_u");
+
 
         Toast.makeText(this, "Hello", Toast.LENGTH_SHORT).show();
+
+        activityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            Intent data = result.getData();
+                            // обработка результата
+                            //String pin = data.getStringExtra("pin");
+                            //Toast.makeText(MainActivity.this, pin, Toast.LENGTH_SHORT).show();
+
+                            pin = data.getStringExtra("pin");
+                            synchronized (MainActivity.this) {
+                                MainActivity.this.notifyAll();
+                            }
+                        }
+                    }
+                });
     }
 
     public static byte[] stringToHex(String s)
@@ -73,11 +120,31 @@ public class MainActivity extends AppCompatActivity {
 
     public void onButtonClick(View v)
     {
-        byte[] key = stringToHex("0123456789ABCDEF0123456789ABCDE0");
+        /*byte[] key = stringToHex("0123456789ABCDEF0123456789ABCDE0");
         byte[] enc = encrypt(key, stringToHex("098200004900000102"));
         byte[] dec = decrypt(key, enc);
         String s = new String(Hex.encodeHex(dec)).toUpperCase();
-        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();*/
+        ////Intent it = new Intent(this, PinpadActivity.class);
+        //startActivity(it);
+        ////activityResultLauncher.launch(it);
+
+        byte[] trd = stringToHex("9F0206000000000100");
+        boolean ok = transaction(trd);
+
+        /*new Thread(()-> {
+            try {
+                byte[] trd = stringToHex("9F0206000000000100");
+                boolean ok = transaction(trd);
+                runOnUiThread(()-> {
+                    Toast.makeText(MainActivity.this, ok ? "ok" : "failed", Toast.LENGTH_SHORT).show();
+                });
+            } catch (Exception ex) {
+                Log.i(TAG, "Uuups, you have a mistake..."+ex.getMessage());
+            }
+        }).start();*/
+
+
     }
 
     /**
@@ -90,4 +157,5 @@ public class MainActivity extends AppCompatActivity {
     public static native byte[] randomBytes(int no);
     public static native byte[] encrypt(byte[] key, byte[] data);
     public static native byte[] decrypt(byte[] key, byte[] data);
+    public native boolean transaction(byte[] trd);
 }
