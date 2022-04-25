@@ -18,6 +18,13 @@ import android.widget.Toast;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class MainActivity extends AppCompatActivity implements TransactionEvents {
@@ -71,16 +78,9 @@ public class MainActivity extends AppCompatActivity implements TransactionEvents
         int res = initRng();
         byte[] v = randomBytes(16);
 
-
-        //binding = ActivityMainBinding.inflate(getLayoutInflater());
-        //setContentView(binding.getRoot());
-
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
-        //TextView tv = binding.sampleText;
         tv.setText(stringFromJNI());
-
-
 
         Toast.makeText(this, "Hello", Toast.LENGTH_SHORT).show();
 
@@ -91,10 +91,6 @@ public class MainActivity extends AppCompatActivity implements TransactionEvents
                     public void onActivityResult(ActivityResult result) {
                         if (result.getResultCode() == Activity.RESULT_OK) {
                             Intent data = result.getData();
-                            // обработка результата
-                            //String pin = data.getStringExtra("pin");
-                            //Toast.makeText(MainActivity.this, pin, Toast.LENGTH_SHORT).show();
-
                             pin = data.getStringExtra("pin");
                             synchronized (MainActivity.this) {
                                 MainActivity.this.notifyAll();
@@ -120,31 +116,40 @@ public class MainActivity extends AppCompatActivity implements TransactionEvents
 
     public void onButtonClick(View v)
     {
-        /*byte[] key = stringToHex("0123456789ABCDEF0123456789ABCDE0");
-        byte[] enc = encrypt(key, stringToHex("098200004900000102"));
-        byte[] dec = decrypt(key, enc);
-        String s = new String(Hex.encodeHex(dec)).toUpperCase();
-        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();*/
-        ////Intent it = new Intent(this, PinpadActivity.class);
-        //startActivity(it);
-        ////activityResultLauncher.launch(it);
-
         byte[] trd = stringToHex("9F0206000000000100");
-        boolean ok = transaction(trd);
+        //boolean ok = transaction(trd);
+        testHttpClient();
 
-        /*new Thread(()-> {
+    }
+
+    protected void testHttpClient()
+    {
+        new Thread(() -> {
             try {
-                byte[] trd = stringToHex("9F0206000000000100");
-                boolean ok = transaction(trd);
-                runOnUiThread(()-> {
-                    Toast.makeText(MainActivity.this, ok ? "ok" : "failed", Toast.LENGTH_SHORT).show();
+                HttpURLConnection uc = (HttpURLConnection)
+                        (new URL("http://10.0.2.2:8080/api/v1/title").openConnection());
+                InputStream inputStream = uc.getInputStream();
+                String html = IOUtils.toString(inputStream);
+                String title = getPageTitle(html);
+                runOnUiThread(() ->
+                {
+                    Toast.makeText(this, title, Toast.LENGTH_LONG).show();
                 });
             } catch (Exception ex) {
-                Log.i(TAG, "Uuups, you have a mistake..."+ex.getMessage());
+                Log.e("fapptag", "Http client fails", ex);
             }
-        }).start();*/
+        }).start();
+    }
 
-
+    private String getPageTitle(String html) {
+        Pattern pattern = Pattern.compile("<title>(.+?)</title>", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(html);
+        String p;
+        if (matcher.find())
+            p = matcher.group(1);
+        else
+            p = "Not found";
+        return p;
     }
 
     /**
