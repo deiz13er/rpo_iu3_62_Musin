@@ -4,6 +4,8 @@
         <!-- Primary brand color. -->
         <item name="colorPrimary">#ffbb00</item>
         <item name="colorPrimaryVariant">#c25700</item>
+        <!--<item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryVariant">#0f000f</item>-->
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>
