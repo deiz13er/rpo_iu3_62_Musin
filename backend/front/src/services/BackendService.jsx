@@ -1,4 +1,5 @@
 import axios from 'axios'
+import Utils from "../utils/Utils";
 
 const API_URL = 'http://localhost:8080/api/v1'
 const AUTH_URL = 'http://localhost:8080/auth'
@@ -10,7 +11,7 @@ class BackendService {
 	}
 	
 	logout() {
-		return axios.get(`${AUTH_URL}/logout`)
+		return axios.get(`${AUTH_URL}/logout`, { headers : {Authorization : Utils.getToken()}})
 	}
 }
 
