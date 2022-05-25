@@ -8,12 +8,17 @@ import com.example.backend.repositories.ArtistRepository;
 import com.example.backend.repositories.CountryRepository;
 import com.example.backend.repositories.MuseumRepository;
 import com.example.backend.repositories.PaintingRepository;
+import com.example.backend.tools.DataValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,12 +29,23 @@ import java.util.Optional;
 public class PaintingController {
     @Autowired
     PaintingRepository paintingRepository;
+    @Autowired
     ArtistRepository artistRepository;
+    @Autowired
     MuseumRepository museumRepository;
 
     @GetMapping("/paintings")
-    public List getAllPaintings() {
-        return paintingRepository.findAll();
+    public Page getAllPaintings(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        return paintingRepository.findAll(PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "name")));
+    }
+
+    @GetMapping("/paintings/{id}")
+    public ResponseEntity getPainting(@PathVariable(value = "id") Long paintingId)
+            throws DataValidationException
+    {
+        Painting painting = paintingRepository.findById(paintingId)
+                .orElseThrow(()-> new DataValidationException("Песня с таким индексом не найден"));
+        return ResponseEntity.ok(painting);
     }
 
     @PostMapping("/paintings")
@@ -71,21 +87,16 @@ public class PaintingController {
             painting.artistid=paintingDetails.artistid;
             painting.museumid=paintingDetails.museumid;
             painting.year=paintingDetails.year;
+            paintingRepository.save(painting);
             return ResponseEntity.ok(painting);
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "painting not found");
         }
     }
 
-    @DeleteMapping("/painting/{id}")
-    public ResponseEntity<Object> deletePainting(@PathVariable(value = "id") Long paintingId) {
-        Optional<Painting> painting = paintingRepository.findById(paintingId);
-        Map<String, Boolean> resp = new HashMap<>();
-        if (painting.isPresent()) {
-            paintingRepository.delete(painting.get());
-            resp.put("deleted", Boolean.TRUE);
-        } else
-            resp.put("deleted", Boolean.FALSE);
-        return ResponseEntity.ok(resp);
+    @PostMapping("/deletepaintings")
+    public ResponseEntity deletePaintings(@Valid @RequestBody List<Painting> paintings) {
+        paintingRepository.deleteAll(paintings);
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

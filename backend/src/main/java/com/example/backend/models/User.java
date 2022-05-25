@@ -40,6 +40,9 @@ public class User {
     @Column(name = "activity")
     public LocalDateTime activity;
 
+    @Transient
+    public String np;
+
     @ManyToMany(mappedBy = "users")
     public Set<Museum> museums = new HashSet<>();
 

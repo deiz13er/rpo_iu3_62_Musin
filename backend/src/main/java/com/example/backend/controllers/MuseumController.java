@@ -4,12 +4,17 @@ import com.example.backend.models.Country;
 import com.example.backend.models.Museum;
 import com.example.backend.models.Painting;
 import com.example.backend.repositories.MuseumRepository;
+import com.example.backend.tools.DataValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.util.*;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -19,8 +24,17 @@ public class MuseumController {
     MuseumRepository museumRepository;
 
     @GetMapping("/museums")
-    public List getAllMuseums() {
-        return museumRepository.findAll();
+    public Page getAllMuseums(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        return museumRepository.findAll(PageRequest.of(page, limit, Sort.by(Sort.Direction.ASC, "name")));
+    }
+
+    @GetMapping("/museums/{id}")
+    public ResponseEntity getMuseum(@PathVariable(value = "id") Long museumId)
+            throws DataValidationException
+    {
+        Museum museum = museumRepository.findById(museumId)
+                .orElseThrow(()-> new DataValidationException("Концерт с таким индексом не найден"));
+        return ResponseEntity.ok(museum);
     }
 
     @PostMapping("/museums")
@@ -59,16 +73,10 @@ public class MuseumController {
         }
     }
 
-    @DeleteMapping("/museums/{id}")
-    public ResponseEntity<Object> deleteMuseum(@PathVariable(value = "id") Long museumId) {
-        Optional<Museum> museum = museumRepository.findById(museumId);
-        Map<String, Boolean> resp = new HashMap<>();
-        if (museum.isPresent()) {
-            museumRepository.delete(museum.get());
-            resp.put("deleted", Boolean.TRUE);
-        } else
-            resp.put("deleted", Boolean.FALSE);
-        return ResponseEntity.ok(resp);
+    @PostMapping("/deletemuseums")
+    public ResponseEntity deleteMuseums(@Valid @RequestBody List<Museum> museums) {
+        museumRepository.deleteAll(museums);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/museums/{id}/paintings")
